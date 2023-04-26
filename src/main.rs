@@ -1,6 +1,5 @@
 use win32console::console::WinConsole;
 use win32console::structs::coord::Coord;
-use crossterm::event::{self, Event};
 
 mod constants;
 mod input;
@@ -10,10 +9,10 @@ const SCREEN_HEIGHT: i32 = 40;
 
 fn get_ray_bounds
 (
-    ray_x: i32,
-    ray_y: i32, 
+    ray_x:      i32,
+    ray_y:      i32, 
     map_height: i32, 
-    map_width: i32
+    map_width:  i32
 ) -> bool
 {
     if ray_x < 0 || ray_x >= map_height || ray_y < 0 || ray_y >= map_width{
@@ -84,9 +83,7 @@ fn main(){
                 }
 
                 
-            }
-
-            
+            }            
         }
 
         WinConsole::output().write_output_character(&SCREEN, Coord::new(0, 0)).unwrap();

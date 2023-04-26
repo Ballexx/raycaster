@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 win32console = "0.1.0"
 crossterm = "0.26.1"
+console = "0.15.5"
