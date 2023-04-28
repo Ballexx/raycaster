@@ -1,6 +1,17 @@
-use win32console::console::WinConsole;
-use win32console::structs::coord::Coord;
-
+use win32console::{
+    structs::coord::Coord,
+    console::WinConsole,
+};
+use crossterm::{
+    event::{
+        read,
+        Event, 
+        KeyCode, 
+        KeyEvent, 
+        KeyModifiers,
+        KeyEventKind, KeyEventState
+    }
+};
 mod constants;
 mod input;
 
@@ -39,6 +50,7 @@ fn main(){
     WinConsole::output().clear().unwrap();    
 
     loop {
+
         for x in 0..SCREEN_WIDTH{
             let ray_angle: f32 = (player_angle - FOV / 2.0) + (x as f32 / SCREEN_WIDTH as f32);
             
@@ -47,21 +59,19 @@ fn main(){
 
             let mut distance_to_wall: f32 = 0.0;
 
-            let mut wall_collision: bool = false;
-
-            while !wall_collision && distance_to_wall < depth_of_field{
+            while distance_to_wall < depth_of_field{
                 distance_to_wall += 0.1;
 
                 let ray_x: i32 = (player_X + eye_X * distance_to_wall) as i32;
                 let ray_y: i32 = (player_Y + eye_Y * distance_to_wall) as i32;
 
                 if get_ray_bounds(ray_x, ray_y, map_height, map_width){
-                    wall_collision = true;
                     distance_to_wall = depth_of_field;
+                    break;
                 }
                 else {
                     if map[(ray_y * map_width + ray_x) as usize] == "#"{
-                        wall_collision = true;
+                        break;
                     }
                 }
 
