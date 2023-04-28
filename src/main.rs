@@ -1,6 +1,7 @@
 use win32console::{
     structs::coord::Coord,
     console::WinConsole,
+
 };
 use crossterm::{
     event::{
@@ -12,8 +13,14 @@ use crossterm::{
         KeyEventKind, KeyEventState
     }
 };
+
+use std::time::{SystemTime, Duration};
+
+use console::Term;
+
+use oem_cp::code_table::DECODING_TABLE_CP437;
+
 mod constants;
-mod input;
 
 const SCREEN_WIDTH: i32 = 120;
 const SCREEN_HEIGHT: i32 = 40;
@@ -32,10 +39,40 @@ fn get_ray_bounds
     return false;
 }
 
+fn calculate_fps
+(
+    time_one: SystemTime
+)   -> (Duration, SystemTime)
+{
+    let time_two = SystemTime::now();
+    return (
+        time_one.elapsed().unwrap() - time_two.elapsed().unwrap(),
+        time_two
+    );
+}
+
+fn calculate_shading(distance: f32, depth_of_field: f32) -> u16{
+    if distance <= depth_of_field / 4.0{
+        return 0x2558;
+    }
+    else if distance <= depth_of_field / 3.0 {
+        return 0x2593;
+    }
+    else if distance <= depth_of_field / 2.0 {
+        return 0x2593;
+    }
+    else if distance <= depth_of_field{
+        return 0x2592;
+    }    
+    return 32;
+}
+
 fn main(){
     let mut SCREEN: [u8; (SCREEN_HEIGHT * SCREEN_WIDTH) as usize] = [40; (SCREEN_HEIGHT * SCREEN_WIDTH) as usize];
 
     let map: [&str; 256] = constants::map();
+
+    let mut now = SystemTime::now();
 
     let map_width: i32 = 16;
     let map_height: i32 = 16;
@@ -46,10 +83,16 @@ fn main(){
     let mut player_X: f32 = 8.0;
     let mut player_Y: f32 = 8.0;
     let mut player_angle: f32 = 0.0;
+    let horizontal_sensitivity: f32 = 2.0;
+
+    let stdout = Term::buffered_stdout();
 
     WinConsole::output().clear().unwrap();    
 
     loop {
+        let (elapsed, next) = calculate_fps(now);
+        let FPS = elapsed.as_secs_f32();
+        now = next;
 
         for x in 0..SCREEN_WIDTH{
             let ray_angle: f32 = (player_angle - FOV / 2.0) + (x as f32 / SCREEN_WIDTH as f32);
@@ -80,13 +123,17 @@ fn main(){
             let ceiling = (SCREEN_HEIGHT as f32 / 2.0) - SCREEN_HEIGHT as f32 / (distance_to_wall as f32);
             let floor= SCREEN_HEIGHT - ceiling as i32;
 
+            let shading = calculate_shading(distance_to_wall, depth_of_field);
+
+        
+
             for y in 0..SCREEN_HEIGHT{
 
                 if y < ceiling as i32{
                     SCREEN[(y*SCREEN_WIDTH+x) as usize] = 32;
                 }
                 else if y > ceiling as i32 && y <= floor{
-                    SCREEN[(y*SCREEN_WIDTH+x) as usize] = 35;
+                    SCREEN[(y*SCREEN_WIDTH+x) as usize] = shading;
                 }
                 else{
                     SCREEN[(y*SCREEN_WIDTH+x) as usize] = 32;
@@ -95,7 +142,17 @@ fn main(){
                 
             }            
         }
-
         WinConsole::output().write_output_character(&SCREEN, Coord::new(0, 0)).unwrap();
+
+        if let Ok(input) = stdout.read_char() {
+            match input {
+                'w' => (),
+                'a' => player_angle -= 0.1 * (FPS * horizontal_sensitivity),
+                's' => (),
+                'd' => player_angle += 0.1 * (FPS * horizontal_sensitivity),
+                _ => (),
+            }
+        }
+
     }
 }
