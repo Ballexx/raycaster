@@ -3,18 +3,10 @@ use win32console::{
     console::WinConsole,
 
 };
-use crossterm::{
-    event::{
-        read,
-        Event, 
-        KeyCode, 
-        KeyEvent, 
-        KeyModifiers,
-        KeyEventKind, KeyEventState
-    }
+use std::time::{
+    SystemTime, 
+    Duration
 };
-
-use std::time::{SystemTime, Duration};
 
 use console::Term;
 use yore::code_pages::CP437;
@@ -40,13 +32,13 @@ fn get_ray_bounds
 
 fn calculate_fps
 (
-    time_one: SystemTime
+    system_time_one: SystemTime
 )   -> (Duration, SystemTime)
 {
-    let time_two: SystemTime = SystemTime::now();
+    let system_time_two: SystemTime = SystemTime::now();
     return (
-        time_one.elapsed().unwrap() - time_two.elapsed().unwrap(),
-        time_two
+        system_time_one.elapsed().unwrap() - system_time_two.elapsed().unwrap(),
+        system_time_two
     );
 }
 
@@ -66,33 +58,99 @@ fn calculate_shading(distance: f32, depth_of_field: f32) -> u8{
     return 32;
 }
 
+fn clear_console(){
+    let console_clear_result = WinConsole::output().clear();
+
+    let console_clear = match console_clear_result {
+        Ok(clear) => clear,
+        Err(err) => {
+            println!("{}", err);
+        }
+    };
+}
+
+fn initialize_player() -> (
+    f32,
+    f32,
+    f32
+){
+    let mut player_X:       f32 = 8.0;
+    let mut player_Y:       f32 = 8.0;
+    let mut player_angle:   f32 = 0.0;
+
+    return(
+        player_X,
+        player_Y,
+        player_angle
+    )
+}
+
+fn initialize_map<'lifetime>() -> (
+    [&'lifetime str; 256],
+    i32,
+    i32
+){
+    let map:         [&str; 256] = constants::map();
+    let map_width:   i32 = 16;
+    let map_height:  i32 = 16;
+
+    return(
+        map,
+        map_width,
+        map_height
+    )
+}
+
+fn initialize_settings() -> (
+    f32,
+    f32,
+    f32,
+    f32
+){
+    let horizontal_sensitivity:  f32 = 4.0;
+    let player_speed:            f32 = 4.0;
+    let FOV:                     f32 = constants::set_fov(4);
+    let depth_of_field:          f32 = 16.0;
+
+    return(
+        horizontal_sensitivity,
+        player_speed,
+        FOV,
+        depth_of_field
+    )
+}
+
 fn main(){
     let mut SCREEN: [u8; (SCREEN_HEIGHT * SCREEN_WIDTH) as usize] = [40; (SCREEN_HEIGHT * SCREEN_WIDTH) as usize];
 
-    let map: [&str; 256] = constants::map();
+    let (
+        mut player_X,
+        mut player_Y,
+        mut player_angle,
+    ) = initialize_player();
 
-    let mut now: SystemTime = SystemTime::now();
+    let (
+        map,
+        map_width,
+        map_height
+    ) = initialize_map();
 
-    let map_width: i32 = 16;
-    let map_height: i32 = 16;
+    let (
+        horizontal_sensitivity,
+        player_speed,
+        FOV,
+        depth_of_field
+    ) = initialize_settings();
 
-    let FOV: f32 = constants::set_fov(4);
-    let depth_of_field: f32 = 16.0;
- 
-    let mut player_X: f32 = 8.0;
-    let mut player_Y: f32 = 8.0;
-    let mut player_angle: f32 = 0.0;
-    let horizontal_sensitivity: f32 = 4.0;
-    let player_speed: f32 = 4.0;
+    let mut current_system_time:   SystemTime = SystemTime::now();
 
     let stdout: Term = Term::buffered_stdout();
-
-    WinConsole::output().clear().unwrap();    
+    let console_clear: () = clear_console();
 
     loop {
-        let (elapsed, next) = calculate_fps(now);
+        let (elapsed, next_system_time) = calculate_fps(current_system_time);
         let FPS: f32 = elapsed.as_secs_f32();
-        now = next;
+        current_system_time = next_system_time;
 
         for x in 0..SCREEN_WIDTH{
             let ray_angle: f32 = (player_angle - FOV / 2.0) + (x as f32 / SCREEN_WIDTH as f32);
