@@ -43,18 +43,33 @@ fn calculate_fps
     );
 }
 
-fn calculate_shading(distance: f32, depth_of_field: f32) -> u8{
+fn calculate_wall_shading(distance: f32, depth_of_field: f32) -> u8{
     if distance <= depth_of_field / 4.0{
-        return 35;
+        return 127;
     }
     else if distance <= depth_of_field / 3.0 {
-        return 64;
-    }
-    else if distance <= depth_of_field / 2.0 {
         return 38;
     }
+    else if distance <= depth_of_field / 2.0 {
+        return 35;
+    }
     else if distance <= depth_of_field{
-        return 42;
+        return 43;
+    }    
+    return 32;
+}
+fn calculate_floor_shading(distance: f32) -> u8{
+    if distance < 0.25{
+        return 35;
+    }
+    else if distance < 0.5{
+        return 120;
+    }
+    else if distance < 0.75{
+        return 46;
+    }
+    else if distance < 0.9{
+        return 39;
     }    
     return 32;
 }
@@ -130,7 +145,7 @@ fn main(){
             let ceiling = (SCREEN_HEIGHT as f32 / 2.0) - SCREEN_HEIGHT as f32 / (distance_to_wall as f32);
             let floor= SCREEN_HEIGHT - ceiling as i32;
 
-            let shading = calculate_shading(distance_to_wall, depth_of_field);
+            let wall_shading = calculate_wall_shading(distance_to_wall, depth_of_field);
 
             for y in 0..SCREEN_HEIGHT{
 
@@ -138,10 +153,13 @@ fn main(){
                     SCREEN[(y*SCREEN_WIDTH+x) as usize] = 32;
                 }
                 else if y > ceiling as i32 && y <= floor{
-                    SCREEN[(y*SCREEN_WIDTH+x) as usize] = shading;
+                    SCREEN[(y*SCREEN_WIDTH+x) as usize] = wall_shading;
                 }
                 else{
-                    SCREEN[(y*SCREEN_WIDTH+x) as usize] = 32;
+                    let floor_distance: f32 = 1.0 - ((y as f32 - SCREEN_HEIGHT as f32 / 2.0) / (SCREEN_HEIGHT as f32 /2.0));
+                    let floor_shading: u8 = calculate_floor_shading(floor_distance);
+
+                    SCREEN[(y*SCREEN_WIDTH+x) as usize] = floor_shading;
                 }
             }            
         }

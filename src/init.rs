@@ -42,7 +42,7 @@ pub fn initialize_settings() -> (
     f32,
     f32
 ){
-    let horizontal_sensitivity:  f32 = 4.0;
+    let horizontal_sensitivity:  f32 = 8.0;
     let player_speed:            f32 = 4.0;
     let FOV:                     f32 = set_fov(4);
     let depth_of_field:          f32 = 16.0;
