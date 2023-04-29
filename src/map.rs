@@ -1,4 +1,4 @@
-pub fn map<'lifetime>() -> [&'lifetime str; 256]{
+pub fn generate_map<'lifetime>() -> [&'lifetime str; 256]{
     
     let map: [&str; 256] = 
     [
@@ -24,6 +24,3 @@ pub fn map<'lifetime>() -> [&'lifetime str; 256]{
     
 }
 
-pub fn set_fov(FOV: i32) -> f32{
-    return 3.141592 / FOV as f32;
-}

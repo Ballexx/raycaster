@@ -11,7 +11,8 @@ use std::time::{
 use console::Term;
 use yore::code_pages::CP437;
 
-mod constants;
+mod map;
+mod init;
 
 const SCREEN_WIDTH: i32 = 120;
 const SCREEN_HEIGHT: i32 = 40;
@@ -69,57 +70,6 @@ fn clear_console(){
     };
 }
 
-fn initialize_player() -> (
-    f32,
-    f32,
-    f32
-){
-    let mut player_X:       f32 = 8.0;
-    let mut player_Y:       f32 = 8.0;
-    let mut player_angle:   f32 = 0.0;
-
-    return(
-        player_X,
-        player_Y,
-        player_angle
-    )
-}
-
-fn initialize_map<'lifetime>() -> (
-    [&'lifetime str; 256],
-    i32,
-    i32
-){
-    let map:         [&str; 256] = constants::map();
-    let map_width:   i32 = 16;
-    let map_height:  i32 = 16;
-
-    return(
-        map,
-        map_width,
-        map_height
-    )
-}
-
-fn initialize_settings() -> (
-    f32,
-    f32,
-    f32,
-    f32
-){
-    let horizontal_sensitivity:  f32 = 4.0;
-    let player_speed:            f32 = 4.0;
-    let FOV:                     f32 = constants::set_fov(4);
-    let depth_of_field:          f32 = 16.0;
-
-    return(
-        horizontal_sensitivity,
-        player_speed,
-        FOV,
-        depth_of_field
-    )
-}
-
 fn main(){
     let mut SCREEN: [u8; (SCREEN_HEIGHT * SCREEN_WIDTH) as usize] = [40; (SCREEN_HEIGHT * SCREEN_WIDTH) as usize];
 
@@ -127,20 +77,20 @@ fn main(){
         mut player_X,
         mut player_Y,
         mut player_angle,
-    ) = initialize_player();
+    ) = init::initialize_player();
 
     let (
         map,
         map_width,
         map_height
-    ) = initialize_map();
+    ) = init::initialize_map();
 
     let (
         horizontal_sensitivity,
         player_speed,
         FOV,
         depth_of_field
-    ) = initialize_settings();
+    ) = init::initialize_settings();
 
     let mut current_system_time:   SystemTime = SystemTime::now();
 
