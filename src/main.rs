@@ -135,10 +135,8 @@ fn main(){
                     distance_to_wall = depth_of_field;
                     break;
                 }
-                else {
-                    if map[(ray_y * map_width + ray_x) as usize] == "#"{
-                        break;
-                    }
+                if map[(ray_y * map_width + ray_x) as usize] == "#"{
+                    break;
                 }
             }
 
